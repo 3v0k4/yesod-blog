@@ -1,3 +1,54 @@
+## Deploy
+
+Configure NGINX
+
+```
+root /path/to/yesod;
+location / {
+  proxy_pass http://127.0.0.1:3000/;
+}
+```
+
+Create a service `/etc/systemd/system/yesod.service`
+```
+[Unit]
+Description=Yesod App
+After=nginx.service
+After=syslog.target
+After=network.target
+
+[Service]
+type=simple
+Restart=always
+ExecStart=/path/to/yesod/yesod-blog
+WorkingDirectory=/path/to/yesod/
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=yesod
+User=my_user
+
+[Install]
+WantedBy=multi-user.target
+```
+
+and enable it
+
+```bash
+systemctl enable yesod
+```
+
+Build the Docker image to compile the Yesod application
+
+```bash
+docker build -t yesod-blog .
+```
+
+Run the deploy script
+
+```bash
+USER=my_user HOSTNAME=my_hostname ./deploy.sh
+```
+
 ## Haskell Setup
 
 1. If you haven't already, [install Stack](https://haskell-lang.org/get-started)
