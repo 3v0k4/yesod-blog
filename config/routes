@@ -12,4 +12,5 @@
 /comments CommentR POST
 
 /profile ProfileR GET
-/ LandingR GET
+/ LandingR GET POST
+/posts PostsR GET

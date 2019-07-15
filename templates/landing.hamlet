@@ -1,1 +1,4 @@
 <h1>Login
+<form method=post action=@{LandingR} enctype=#{enctype}>
+  ^{widget}
+  <button>Login

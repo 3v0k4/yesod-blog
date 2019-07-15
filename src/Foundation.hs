@@ -173,6 +173,8 @@ instance Yesod App where
 
     isAuthorized LandingR _ = return Authorized
 
+    isAuthorized PostsR _ = return Authorized
+
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
     -- expiration dates to be set far in the future without worry of
@@ -297,3 +299,10 @@ unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
 -- https://github.com/yesodweb/yesod/wiki/Sending-email
 -- https://github.com/yesodweb/yesod/wiki/Serve-static-files-from-a-separate-domain
 -- https://github.com/yesodweb/yesod/wiki/i18n-messages-in-the-scaffolding
+
+emptyLayout :: Widget -> Handler Html
+emptyLayout widget = do
+    pc <- widgetToPageContent $ do
+        $(widgetFile "empty-layout")
+    withUrlRenderer $(hamletFile "templates/empty-layout-wrapper.hamlet")
+
