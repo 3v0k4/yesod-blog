@@ -1,0 +1,10 @@
+document.addEventListener("DOMContentLoaded", function() {
+  document.getElementById("toggle-new-post").addEventListener("click", function() {
+    var value =
+      document.getElementById("new-post").style.display === "block"
+      ? "none"
+      : "block";
+
+    document.getElementById("new-post").style.display = value;
+  });
+});

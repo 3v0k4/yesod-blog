@@ -1,5 +1,8 @@
 <h1>Posts
 
+<button id="toggle-new-post">
+  Toggle Form
+
 <div id="new-post">
   <form method=post action=@{PostsR} enctype=#{enctype}>
     ^{widget}
