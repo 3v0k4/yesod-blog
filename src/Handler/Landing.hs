@@ -16,7 +16,8 @@ data Login =
 loginForm :: Form Login
 loginForm =
   renderDivs $
-    Login <$> areq textField "Username" Nothing <*> areq textField "Password" Nothing
+    Login <$> areq textField "Username" Nothing <*> areq passwordField "Password" Nothing
+
 
 getLandingR :: Handler Html
 getLandingR = do
