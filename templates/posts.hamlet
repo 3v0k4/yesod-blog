@@ -1,0 +1,15 @@
+<h1>Posts
+
+<div id="new-post">
+  <form method=post action=@{PostsR} enctype=#{enctype}>
+    ^{widget}
+    <button>Post
+
+<ul>
+  <li>
+    <h2>Title 1
+    <p>Text 1
+
+  <li>
+    <h2>Title 2
+    <p>Text 2
