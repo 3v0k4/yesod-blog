@@ -10,13 +10,13 @@ module Handler.Posts where
 import Import
 
 data Post =
-  Post { title :: Text, text :: Text }
+  Post { title :: Text, text :: Textarea }
   deriving Show
 
 postForm :: Form Post
 postForm =
   renderDivs $
-    Post <$> areq textField "Title" Nothing <*> areq textField "Text" Nothing
+    Post <$> areq textField "Title" Nothing <*> areq textareaField "Text" Nothing
 
 getPostsR :: Handler Html
 getPostsR = do
