@@ -7,9 +7,15 @@
 module Handler.Landing where
 
 import Import
+import Text.Hamlet          (hamletFile)
+
+emptyLayout :: Widget -> Handler Html
+emptyLayout widget = do
+    pc <- widgetToPageContent $ do
+        $(widgetFile "empty-layout")
+    withUrlRenderer $(hamletFile "templates/empty-layout-wrapper.hamlet")
 
 getLandingR :: Handler Html
 getLandingR = do
-  defaultLayout $ do
-    let interpolated = "interpolated string" :: Text
+  emptyLayout $ do
     $(widgetFile "landing")
