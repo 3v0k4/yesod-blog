@@ -29,8 +29,15 @@ postLandingR :: Handler Html
 postLandingR = do
   ((result, widget), enctype) <- runFormPost loginForm
   case result of
-    FormSuccess _ ->
-      redirect PostsR
+    FormSuccess login -> do
+      user <- runDB $ selectList [ UserIdent ==. username login, UserPassword ==. Just (password login) ] []
+      case user of
+        [] ->
+          emptyLayout $ do
+            $(widgetFile "landing")
+
+        _ ->
+          redirect PostsR
     _ ->
       emptyLayout $ do
         $(widgetFile "landing")
