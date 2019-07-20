@@ -33,3 +33,8 @@ postPostsR = do
     _ ->
       emptyLayout $ do
         $(widgetFile "posts")
+
+deletePostR :: PostId -> Handler Html
+deletePostR postId = do
+  _ <- runDB $ delete postId
+  redirect PostsR

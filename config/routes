@@ -14,3 +14,4 @@
 /profile ProfileR GET
 / LandingR GET POST
 /posts PostsR GET POST
+/posts/#PostId PostR DELETE
