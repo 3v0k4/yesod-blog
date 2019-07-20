@@ -9,10 +9,6 @@ module Handler.Posts where
 
 import Import
 
-data Post =
-  Post { title :: Text, text :: Textarea }
-  deriving Show
-
 postForm :: Form Post
 postForm =
   renderDivs $
