@@ -27,7 +27,8 @@ postPostsR = do
   ((result, widget), enctype) <- runFormPost postForm
   allPosts :: [Entity Post] <- runDB $ selectList [] []
   case result of
-    FormSuccess _ ->
+    FormSuccess post -> do
+      _ <- runDB $ insert post
       redirect PostsR
     _ ->
       emptyLayout $ do
