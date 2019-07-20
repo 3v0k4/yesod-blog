@@ -9,10 +9,7 @@
     <button>Post
 
 <ul>
-  <li>
-    <h2>Title 1
-    <p>Text 1
-
-  <li>
-    <h2>Title 2
-    <p>Text 2
+  $forall post <- allPosts
+    <li>
+      <h2> #{postTitle $ entityVal post}
+      <p> #{postText $ entityVal post}

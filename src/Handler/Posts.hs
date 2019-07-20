@@ -4,6 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Handler.Posts where
 
@@ -17,12 +18,14 @@ postForm =
 getPostsR :: Handler Html
 getPostsR = do
   (widget, enctype) <- generateFormPost postForm
+  allPosts :: [Entity Post] <- runDB $ selectList [] []
   emptyLayout $ do
     $(widgetFile "posts")
 
 postPostsR :: Handler Html
 postPostsR = do
   ((result, widget), enctype) <- runFormPost postForm
+  allPosts :: [Entity Post] <- runDB $ selectList [] []
   case result of
     FormSuccess _ ->
       redirect PostsR
