@@ -10,21 +10,26 @@ module Handler.Posts where
 
 import Import
 
-postForm :: Form Post
-postForm =
+postForm :: UserId -> Form Post
+postForm userId =
   renderDivs $
-    Post <$> areq textField "Title" Nothing <*> areq textareaField "Text" Nothing
+    Post <$>
+    areq textField "Title" Nothing <*>
+    areq textareaField "Text" Nothing <*>
+    areq hiddenField "" (Just userId)
 
 getPostsR :: Handler Html
 getPostsR = do
-  (widget, enctype) <- generateFormPost postForm
+  userId <- fmap fst $ requireAuthPair
+  (widget, enctype) <- generateFormPost $ postForm userId
   allPosts :: [Entity Post] <- runDB $ selectList [] [ Desc PostId ]
   emptyLayout $ do
     $(widgetFile "posts")
 
 postPostsR :: Handler Html
 postPostsR = do
-  ((result, widget), enctype) <- runFormPost postForm
+  userId <- fmap fst $ requireAuthPair
+  ((result, widget), enctype) <- runFormPost $ postForm userId
   allPosts :: [Entity Post] <- runDB $ selectList [] [ Desc PostId ]
   case result of
     FormSuccess post -> do

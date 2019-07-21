@@ -19,3 +19,4 @@ Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived
 Post
     title Text
     text Textarea
+    userId UserId
