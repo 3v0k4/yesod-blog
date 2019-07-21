@@ -14,4 +14,7 @@
       <h2> #{postTitle $ entityVal post}
       <p> #{postText $ entityVal post}
       <form method=post action=@{PostR $ entityKey post}?_method=DELETE>
-        <button>Delete
+        $if userId == (postUserId $ entityVal post)
+          <button>Delete
+        $else
+          <p>
