@@ -173,8 +173,8 @@ instance Yesod App where
 
     isAuthorized LandingR _ = return Authorized
 
-    isAuthorized PostsR _ = return Authorized
-    isAuthorized (PostR _) _ = return Authorized
+    isAuthorized PostsR _ = isAuthenticated
+    isAuthorized (PostR _) _ = isAuthenticated
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -272,7 +272,7 @@ isAuthenticated :: Handler AuthResult
 isAuthenticated = do
     muid <- maybeAuthId
     return $ case muid of
-        Nothing -> Unauthorized "You must login to access this page"
+        Nothing -> AuthenticationRequired
         Just _ -> Authorized
 
 instance YesodAuthPersist App
