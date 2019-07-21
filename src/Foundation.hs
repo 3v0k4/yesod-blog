@@ -99,55 +99,57 @@ instance Yesod App where
 
     defaultLayout :: Widget -> Handler Html
     defaultLayout widget = do
-        master <- getYesod
-        mmsg <- getMessage
+        emptyLayout widget
 
-        muser <- maybeAuthPair
-        mcurrentRoute <- getCurrentRoute
+       --master <- getYesod
+       --mmsg <- getMessage
 
-        -- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
-        (title, parents) <- breadcrumbs
+       --muser <- maybeAuthPair
+       --mcurrentRoute <- getCurrentRoute
 
-        -- Define the menu items of the header.
-        let menuItems =
-                [ NavbarLeft $ MenuItem
-                    { menuItemLabel = "Home"
-                    , menuItemRoute = HomeR
-                    , menuItemAccessCallback = True
-                    }
-                , NavbarLeft $ MenuItem
-                    { menuItemLabel = "Profile"
-                    , menuItemRoute = ProfileR
-                    , menuItemAccessCallback = isJust muser
-                    }
-                , NavbarRight $ MenuItem
-                    { menuItemLabel = "Login"
-                    , menuItemRoute = AuthR LoginR
-                    , menuItemAccessCallback = isNothing muser
-                    }
-                , NavbarRight $ MenuItem
-                    { menuItemLabel = "Logout"
-                    , menuItemRoute = AuthR LogoutR
-                    , menuItemAccessCallback = isJust muser
-                    }
-                ]
+       ---- Get the breadcrumbs, as defined in the YesodBreadcrumbs instance.
+       --(title, parents) <- breadcrumbs
 
-        let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
-        let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
+       ---- Define the menu items of the header.
+       --let menuItems =
+       --        [ NavbarLeft $ MenuItem
+       --            { menuItemLabel = "Home"
+       --            , menuItemRoute = HomeR
+       --            , menuItemAccessCallback = True
+       --            }
+       --        , NavbarLeft $ MenuItem
+       --            { menuItemLabel = "Profile"
+       --            , menuItemRoute = ProfileR
+       --            , menuItemAccessCallback = isJust muser
+       --            }
+       --        , NavbarRight $ MenuItem
+       --            { menuItemLabel = "Login"
+       --            , menuItemRoute = AuthR LoginR
+       --            , menuItemAccessCallback = isNothing muser
+       --            }
+       --        , NavbarRight $ MenuItem
+       --            { menuItemLabel = "Logout"
+       --            , menuItemRoute = AuthR LogoutR
+       --            , menuItemAccessCallback = isJust muser
+       --            }
+       --        ]
 
-        let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
-        let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
+       --let navbarLeftMenuItems = [x | NavbarLeft x <- menuItems]
+       --let navbarRightMenuItems = [x | NavbarRight x <- menuItems]
 
-        -- We break up the default layout into two components:
-        -- default-layout is the contents of the body tag, and
-        -- default-layout-wrapper is the entire page. Since the final
-        -- value passed to hamletToRepHtml cannot be a widget, this allows
-        -- you to use normal widget features in default-layout.
+       --let navbarLeftFilteredMenuItems = [x | x <- navbarLeftMenuItems, menuItemAccessCallback x]
+       --let navbarRightFilteredMenuItems = [x | x <- navbarRightMenuItems, menuItemAccessCallback x]
 
-        pc <- widgetToPageContent $ do
-            addStylesheet $ StaticR css_bootstrap_css
-            $(widgetFile "default-layout")
-        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+       ---- We break up the default layout into two components:
+       ---- default-layout is the contents of the body tag, and
+       ---- default-layout-wrapper is the entire page. Since the final
+       ---- value passed to hamletToRepHtml cannot be a widget, this allows
+       ---- you to use normal widget features in default-layout.
+
+       --pc <- widgetToPageContent $ do
+       --    addStylesheet $ StaticR css_bootstrap_css
+       --    $(widgetFile "default-layout")
+       --withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- The page to be redirected to when authentication is required.
     authRoute
@@ -174,7 +176,7 @@ instance Yesod App where
     isAuthorized LandingR _ = return Authorized
 
     isAuthorized PostsR _ = isAuthenticated
-    isAuthorized (PostR _) _ = isAuthenticated
+    isAuthorized (PostR postId) _ = isOwner postId
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -274,6 +276,20 @@ isAuthenticated = do
     return $ case muid of
         Nothing -> AuthenticationRequired
         Just _ -> Authorized
+
+isOwner :: PostId -> Handler AuthResult
+isOwner postId = do
+    muid <- maybeAuthId
+    maybePost <- runDB $ get postId
+    case (muid, maybePost) of
+        (Nothing, _) ->
+          return AuthenticationRequired
+        (Just currentUserId, Nothing) ->
+          return $ Unauthorized "only the author can delete their post"
+        (Just currentUserId,Just post) ->
+          if postUserId post == currentUserId
+            then return $ Authorized
+            else return $ Unauthorized "only the author can delete their post"
 
 instance YesodAuthPersist App
 
