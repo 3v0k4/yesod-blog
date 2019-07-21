@@ -8,7 +8,9 @@
 
 module Handler.Posts where
 
-import Import
+import           Import
+import qualified Database.Esqueleto      as E
+import           Database.Esqueleto      ((^.))
 
 postForm :: UserId -> Form Post
 postForm userId =
@@ -22,7 +24,18 @@ getPostsR :: Handler Html
 getPostsR = do
   userId <- fmap fst $ requireAuthPair
   (widget, enctype) <- generateFormPost $ postForm userId
-  allPosts :: [Entity Post] <- runDB $ selectList [] [ Desc PostId ]
+  allPosts <- runDB
+         $ E.select
+         $ E.from $ \(post `E.InnerJoin` user) -> do
+              E.on $ post ^. PostUserId E.==. user ^. UserId
+              E.orderBy [E.desc (post ^. PostId)]
+              return
+                  ( post ^. PostId
+                  , post ^. PostUserId
+                  , post ^. PostTitle
+                  , post ^. PostText
+                  , user ^. UserIdent
+                  )
   emptyLayout $ do
     $(widgetFile "posts")
 
@@ -30,7 +43,18 @@ postPostsR :: Handler Html
 postPostsR = do
   userId <- fmap fst $ requireAuthPair
   ((result, widget), enctype) <- runFormPost $ postForm userId
-  allPosts :: [Entity Post] <- runDB $ selectList [] [ Desc PostId ]
+  allPosts <- runDB
+         $ E.select
+         $ E.from $ \(post `E.InnerJoin` user) -> do
+              E.on $ post ^. PostUserId E.==. user ^. UserId
+              E.orderBy [E.desc (post ^. PostId)]
+              return
+                  ( post ^. PostId
+                  , post ^. PostUserId
+                  , post ^. PostTitle
+                  , post ^. PostText
+                  , user ^. UserIdent
+                  )
   case result of
     FormSuccess post -> do
       _ <- runDB $ insert post

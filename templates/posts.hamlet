@@ -9,12 +9,13 @@
     <button>Post
 
 <ul>
-  $forall post <- allPosts
+  $forall (E.Value postId, E.Value postUserId, E.Value title, E.Value text, E.Value author) <- allPosts
     <li>
-      <h2> #{postTitle $ entityVal post}
-      <p> #{postText $ entityVal post}
-      <form method=post action=@{PostR $ entityKey post}?_method=DELETE>
-        $if userId == (postUserId $ entityVal post)
+      <h2> #{title}
+      <p> #{text}
+      <p> #{author}
+      <form method=post action=@{PostR postId}?_method=DELETE>
+        $if userId == postUserId
           <button>Delete
         $else
           <p>
