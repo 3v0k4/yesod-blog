@@ -21,9 +21,7 @@ loginForm =
 
 getLandingR :: Handler Html
 getLandingR = do
-  (widget, enctype) <- generateFormPost loginForm
-  emptyLayout $ do
-    $(widgetFile "landing")
+  redirect $ AuthR LoginR
 
 postLandingR :: Handler Html
 postLandingR = do

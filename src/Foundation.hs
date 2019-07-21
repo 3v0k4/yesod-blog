@@ -242,13 +242,13 @@ instance YesodAuth App where
 
     -- Where to send a user after successful login
     loginDest :: App -> Route App
-    loginDest _ = HomeR
+    loginDest _ = PostsR
     -- Where to send a user after logout
     logoutDest :: App -> Route App
     logoutDest _ = HomeR
     -- Override the above two destinations when a Referer: header is present
     redirectToReferer :: App -> Bool
-    redirectToReferer _ = True
+    redirectToReferer _ = False
 
     authenticate :: (MonadHandler m, HandlerSite m ~ App)
                  => Creds App -> m (AuthenticationResult App)
@@ -261,11 +261,11 @@ instance YesodAuth App where
                 , userPassword = Nothing
                 }
 
+    authLayout = liftHandler . emptyLayout
+
     -- You can add other plugins like Google Email, email or OAuth here
     authPlugins :: App -> [AuthPlugin App]
-    authPlugins app = [authOpenId Claimed []] ++ extraAuthPlugins
-        -- Enable authDummy login if enabled.
-        where extraAuthPlugins = [authDummy | appAuthDummyLogin $ appSettings app]
+    authPlugins _app = [authDummy]
 
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
