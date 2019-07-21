@@ -304,6 +304,7 @@ unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
 emptyLayout :: Widget -> Handler Html
 emptyLayout widget = do
     pc <- widgetToPageContent $ do
+        maybeUser <- maybeAuthPair
         $(widgetFile "empty-layout")
     withUrlRenderer $(hamletFile "templates/empty-layout-wrapper.hamlet")
 

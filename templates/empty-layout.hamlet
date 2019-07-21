@@ -1,2 +1,7 @@
+<div>
+  $maybe (_key, user) <- maybeUser
+    <p>Logged in as: #{userIdent user}
+  $nothing
+    <p>
 <div .container>
   ^{widget}
