@@ -21,7 +21,12 @@ loginForm =
 
 getLandingR :: Handler Html
 getLandingR = do
-  redirect $ AuthR LoginR
+  maybeUser <- maybeAuthPair
+  case maybeUser of
+    Just _ ->
+      redirect $ PostsR
+    Nothing ->
+      redirect $ AuthR LoginR
 
 postLandingR :: Handler Html
 postLandingR = do
