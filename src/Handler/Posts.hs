@@ -39,6 +39,26 @@ getPostsR = do
   emptyLayout $ do
     $(widgetFile "posts")
 
+data PostData = PostData (Entity Post, Entity User)
+
+instance ToJSON PostData where
+  toJSON (PostData (postEntity, userEntity)) =
+    let
+      post = entityVal postEntity
+      postId = entityKey postEntity
+      user = entityVal userEntity
+      userId = entityKey userEntity
+    in
+    object
+      [ "id" .= postId
+      , "title" .= postTitle post
+      , "text" .= postText post
+      , "user" .= object
+        [ "id" .= userId
+        , "username" .= userIdent user
+        ]
+      ]
+
 getApiPostsR :: Handler Value
 getApiPostsR = do
   userId <- fmap fst $ requireAuthPair
@@ -49,7 +69,8 @@ getApiPostsR = do
               E.on $ post ^. PostUserId E.==. user ^. UserId
               E.orderBy [E.desc (post ^. PostId)]
               return (post, user)
-  return $ object [ "posts" .= allPosts ]
+  let allPosts' = PostData <$> allPosts
+  return $ object [ "posts" .= allPosts' ]
 
 postPostsR :: Handler Html
 postPostsR = do
