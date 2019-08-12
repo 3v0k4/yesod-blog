@@ -15,3 +15,5 @@
 / LandingR GET POST
 /posts PostsR GET POST
 /posts/#PostId PostR DELETE
+
+/api/posts ApiPostsR GET

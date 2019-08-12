@@ -39,6 +39,18 @@ getPostsR = do
   emptyLayout $ do
     $(widgetFile "posts")
 
+getApiPostsR :: Handler Value
+getApiPostsR = do
+  userId <- fmap fst $ requireAuthPair
+  (widget, enctype) <- generateFormPost $ postForm userId
+  allPosts <- runDB
+         $ E.select
+         $ E.from $ \(post `E.InnerJoin` user) -> do
+              E.on $ post ^. PostUserId E.==. user ^. UserId
+              E.orderBy [E.desc (post ^. PostId)]
+              return (post, user)
+  return $ object [ "posts" .= allPosts ]
+
 postPostsR :: Handler Html
 postPostsR = do
   userId <- fmap fst $ requireAuthPair

@@ -176,6 +176,7 @@ instance Yesod App where
     isAuthorized LandingR _ = return Authorized
 
     isAuthorized PostsR _ = isAuthenticated
+    isAuthorized ApiPostsR _ = isAuthenticated
     isAuthorized (PostR postId) _ = isOwner postId
 
     -- This function creates static content files in the static folder
