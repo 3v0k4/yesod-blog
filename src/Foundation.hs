@@ -7,6 +7,8 @@
 {-# LANGUAGE ExplicitForAll #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Foundation where
 
@@ -15,9 +17,6 @@ import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
-
--- Used only when in "auth-dummy-login" setting is enabled.
-import Yesod.Auth.Dummy
 
 import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -269,6 +268,27 @@ instance YesodAuth App where
     -- You can add other plugins like Google Email, email or OAuth here
     authPlugins :: App -> [AuthPlugin App]
     authPlugins _app = [authDummy]
+
+authDummy :: YesodAuth m => AuthPlugin m
+authDummy =
+    AuthPlugin "dummy" dispatch login
+  where
+    dispatch "POST" [] = do
+        ident <- runInputPost $ ireq textField "ident"
+        setCredsRedirect $ Creds "dummy" ident []
+    dispatch _ _ = notFound
+    url = PluginR "dummy" []
+    login authToMaster = do
+        request <- getRequest
+        toWidget [hamlet|
+$newline never
+<form method="post" action="@{authToMaster url}">
+    $maybe t <- reqToken request
+        <input type=hidden name=#{defaultCsrfParamName} value=#{t}>
+    Your new identifier is: #
+    <input type="text" name="ident">
+    <input type="submit" value="Dummy Login">
+|]
 
 -- | Access function to determine if a user is logged in.
 isAuthenticated :: Handler AuthResult
