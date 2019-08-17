@@ -9,6 +9,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Foundation where
 
@@ -17,6 +18,10 @@ import Database.Persist.Sql (ConnectionPool, runSqlPool)
 import Text.Hamlet          (hamletFile)
 import Text.Jasmine         (minifym)
 import Control.Monad.Logger (LogSource)
+import qualified Network.Wai (requestHeaders)
+import qualified Data.ByteString.Char8 as BSC8 (unpack)
+import qualified Data.Text as T (pack)
+import Data.Aeson.Types (Result(..), Parser, parseEither, withObject)
 
 import Yesod.Auth.OpenId    (authOpenId, IdentifierType (Claimed))
 import Yesod.Default.Util   (addStaticContentExternal)
@@ -252,6 +257,16 @@ instance YesodAuth App where
     redirectToReferer :: App -> Bool
     redirectToReferer _ = False
 
+    maybeAuthId = do
+        request <- waiRequest
+        let mHeader = lookup "X-User-Id" (Network.Wai.requestHeaders request)
+            bsToText = T.pack . BSC8.unpack
+        case bsToText <$> mHeader of
+          Just v ->
+            return $ fromPathPiece v
+          Nothing ->
+            defaultMaybeAuthId
+
     authenticate :: (MonadHandler m, HandlerSite m ~ App)
                  => Creds App -> m (AuthenticationResult App)
     authenticate creds = liftHandler $ runDB $ do
@@ -269,13 +284,32 @@ instance YesodAuth App where
     authPlugins :: App -> [AuthPlugin App]
     authPlugins _app = [authDummy]
 
+parser :: Value -> Parser Text
+parser = withObject "ident" (\obj -> do
+                ident <- obj .: "ident"
+                return ident)
+
 authDummy :: YesodAuth m => AuthPlugin m
 authDummy =
     AuthPlugin "dummy" dispatch login
   where
     dispatch "POST" [] = do
-        ident <- runInputPost $ ireq textField "ident"
-        setCredsRedirect $ Creds "dummy" ident []
+        result <- runInputPostResult $ ireq textField "ident"
+        case result of
+          FormSuccess ident ->
+            setCredsRedirect $ Creds "dummy" ident []
+          _ -> do
+            (result :: Result Value) <- parseCheckJsonBody
+            case result of
+              Success val -> do
+                let mIdent = parseEither parser val
+                case mIdent of
+                  Right ident ->
+                    setCredsRedirect $ Creds "dummy" ident []
+                  Left err ->
+                    invalidArgs [T.pack err]
+              Error err ->
+                invalidArgs [T.pack err]
     dispatch _ _ = notFound
     url = PluginR "dummy" []
     login authToMaster = do
