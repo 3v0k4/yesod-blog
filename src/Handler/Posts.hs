@@ -123,3 +123,8 @@ deletePostR :: PostId -> Handler Html
 deletePostR postId = do
   _ <- runDB $ delete postId
   redirect PostsR
+
+deleteApiPostR :: PostId -> Handler Value
+deleteApiPostR postId = do
+  _ <- runDB $ delete postId
+  return Null

@@ -17,3 +17,4 @@
 /posts/#PostId PostR DELETE
 
 /api/posts ApiPostsR GET POST
+/api/posts/#PostId ApiPostR DELETE
