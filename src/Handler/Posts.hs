@@ -11,6 +11,7 @@ module Handler.Posts where
 import           Import
 import qualified Database.Esqueleto      as E
 import           Database.Esqueleto      ((^.))
+import Data.Aeson.Types (Result(..), Parser, parseEither, withObject)
 
 postForm :: UserId -> Form Post
 postForm userId =
@@ -71,6 +72,28 @@ getApiPostsR = do
               return (post, user)
   let allPosts' = PostData <$> allPosts
   return $ object [ "posts" .= allPosts' ]
+
+postApiPostsR :: Handler Value
+postApiPostsR = do
+  (result :: Result Value) <- parseCheckJsonBody
+  case result of
+    Success val -> do
+      let mPost = parseEither postParser val
+      case mPost of
+        Right post -> do
+          postId <- runDB $ insert post
+          return $ object [ "post" .= post, "id" .= postId ]
+        Left err ->
+          invalidArgs [pack err]
+    Error err ->
+      invalidArgs [pack err]
+
+postParser :: Value -> Parser Post
+postParser = withObject "Post" (\obj -> do
+                title <- obj .: "title"
+                text <- obj .: "text"
+                userId <- obj .: "userId"
+                return $ Post title text userId)
 
 postPostsR :: Handler Html
 postPostsR = do
